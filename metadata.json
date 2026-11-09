@@ -1,6 +1,0 @@
-{
-  "name": "Porta de Firewall 2 - Escape Room de Teclado",
-  "description": "Escape Room virtual educativo para 6º ano focado no treinamento de atalhos e navegação exclusiva por teclado.",
-  "requestFramePermissions": [],
-  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
-}
