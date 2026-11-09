@@ -1,18 +1,902 @@
-<!doctype html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Porta de Firewall 2 - Escape Room de Teclado</title>
-    <meta name="description" content="Escape Room virtual educativo para 6º ano focado no treinamento de atalhos e navegação exclusiva por teclado." />
-    <meta property="og:title" content="Porta de Firewall 2 - Escape Room de Teclado" />
-    <meta property="og:description" content="Escape Room virtual educativo para 6º ano focado no treinamento de atalhos e navegação exclusiva por teclado." />
-    <meta property="og:type" content="website" />
-    <meta name="twitter:card" content="summary_large_image" />
-  </head>
-  <body>
-    <div id="root"></div>
-    <script type="module" src="/src/main.tsx"></script>
-  </body>
-</html>
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Porta de Firewall 2 - Escape Room de Teclado</title>
+  <meta name="description" content="Escape Room virtual educativo para 6º ano focado no treinamento de atalhos e navegação exclusiva por teclado.">
+  <style>
+    /* ============================================================
+       TERMINAL DE CONTROLE - PORTA DE FIREWALL 2
+       Tema: MS-DOS / Terminal limpo com fósforo verde e alta visibilidade
+       ============================================================ */
+    * {
+      box-sizing: border-box;
+      user-select: text;
+    }
 
+    html, body {
+      margin: 0;
+      padding: 0;
+      width: 100%;
+      min-height: 100vh;
+      background-color: #000000;
+      color: #00ff00;
+      font-family: 'Consolas', 'Courier New', Monaco, 'Lucida Console', monospace;
+      font-size: 18px;
+      line-height: 1.6;
+      cursor: default; /* Mouse normal na página */
+    }
+
+    /* O cursor do mouse é desativado APENAS nos campos de resposta interativos */
+    .answer-field-no-mouse,
+    .answer-field-no-mouse * {
+      cursor: none !important;
+    }
+
+    /* Seleção de texto fosforescente de alto contraste */
+    ::selection {
+      background: #00ff00;
+      color: #000000;
+    }
+
+    /* Brilho limpo de alta legibilidade (sem borrão excessivo) */
+    .glow {
+      text-shadow: 0 0 3px rgba(0, 255, 0, 0.4);
+    }
+
+    /* Tema Azul (após descriptografar e abrir o firewall no Enigma 2.3) */
+    body.firewall-open {
+      color: #00e5ff;
+    }
+    body.firewall-open .glow {
+      color: #00e5ff;
+      text-shadow: 0 0 3px rgba(0, 229, 255, 0.4);
+    }
+    body.firewall-open ::selection {
+      background: #00e5ff;
+      color: #000000;
+    }
+    body.firewall-open .terminal-box {
+      border-color: #00e5ff;
+    }
+    body.firewall-open input,
+    body.firewall-open textarea,
+    body.firewall-open .editable-field {
+      border-color: #00e5ff;
+      color: #00e5ff;
+    }
+
+    /* Layout principal */
+    .container {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 30px 20px;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* Cabeçalho do terminal */
+    .terminal-header {
+      border-bottom: 2px solid #005500;
+      padding-bottom: 20px;
+      margin-bottom: 28px;
+    }
+    .header-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 15px;
+      margin-bottom: 12px;
+      font-weight: bold;
+    }
+    .ascii-banner {
+      font-family: monospace;
+      white-space: pre;
+      font-size: 14px;
+      line-height: 1.15;
+      overflow-x: auto;
+      margin: 12px 0;
+      font-weight: bold;
+    }
+
+    /* Painéis e caixas */
+    .terminal-box {
+      border: 2px solid #008800;
+      background: rgba(0, 15, 0, 0.4);
+      padding: 24px;
+      margin-bottom: 28px;
+      position: relative;
+    }
+    .terminal-box.active {
+      border-color: #00ff00;
+      box-shadow: 0 0 10px rgba(0, 255, 0, 0.2);
+    }
+    .box-title {
+      position: absolute;
+      top: -14px;
+      left: 20px;
+      background: #000000;
+      padding: 0 10px;
+      font-size: 16px;
+      font-weight: bold;
+      letter-spacing: 1px;
+      border: 1px solid #005500;
+    }
+
+    /* Textos das charadas em destaque */
+    .riddle-text {
+      color: #b6ffb6;
+      margin: 16px 0;
+      padding: 14px 18px;
+      background: rgba(0, 35, 0, 0.5);
+      border-left: 4px solid #00ff00;
+      font-size: 20px;
+      font-weight: 600;
+      line-height: 1.5;
+    }
+
+    /* Campos de entrada */
+    .input-wrapper {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-top: 16px;
+    }
+    .prompt-symbol {
+      font-weight: bold;
+      font-size: 20px;
+      color: #00ff00;
+    }
+    input.terminal-input {
+      background: #000000;
+      border: 2px solid #00aa00;
+      color: #00ff00;
+      font-family: inherit;
+      font-size: 20px;
+      font-weight: bold;
+      padding: 10px 14px;
+      flex: 1;
+      outline: none;
+      letter-spacing: 1px;
+    }
+    input.terminal-input:focus {
+      border-color: #00ff00;
+      box-shadow: 0 0 10px rgba(0, 255, 0, 0.35);
+    }
+
+    /* Área de memória (Enigma 2.2) */
+    textarea.memory-dump {
+      width: 100%;
+      height: 280px;
+      background: #000000;
+      border: 2px solid #00aa00;
+      color: #00ff00;
+      font-family: inherit;
+      font-size: 16px;
+      font-weight: 600;
+      line-height: 1.6;
+      padding: 14px;
+      outline: none;
+      resize: none;
+      white-space: pre;
+    }
+    textarea.memory-dump:focus {
+      border-color: #00ff00;
+      box-shadow: 0 0 10px rgba(0, 255, 0, 0.35);
+    }
+
+    /* Div contenteditable (Enigma 2.3) */
+    .editable-field {
+      min-height: 60px;
+      background: #000000;
+      border: 2px solid #00aa00;
+      color: #00ff00;
+      font-family: inherit;
+      font-size: 22px;
+      font-weight: normal;
+      padding: 12px 16px;
+      outline: none;
+      display: flex;
+      align-items: center;
+      width: 100%;
+    }
+    .editable-field:focus {
+      border-color: #00ff00;
+      box-shadow: 0 0 10px rgba(0, 255, 0, 0.35);
+    }
+
+    /* Mensagens de feedback */
+    .feedback-msg {
+      margin-top: 14px;
+      padding: 12px 16px;
+      font-size: 16px;
+      line-height: 1.5;
+    }
+    .feedback-error {
+      color: #ff8888;
+      background: rgba(50, 0, 0, 0.6);
+      border-left: 4px solid #ff3333;
+    }
+    .feedback-success {
+      color: #88ffff;
+      background: rgba(0, 40, 40, 0.6);
+      border-left: 4px solid #00e5ff;
+    }
+    .feedback-hint {
+      color: #ffdd66;
+      background: rgba(50, 40, 0, 0.5);
+      border-left: 4px solid #ffbb00;
+    }
+
+    /* Rodapé com dicas de atalhos */
+    .keyboard-legend {
+      margin-top: auto;
+      border-top: 1px solid #005500;
+      padding-top: 16px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 16px;
+      font-size: 14px;
+      color: #00cc00;
+    }
+    .key-badge {
+      border: 1px solid #008800;
+      padding: 3px 8px;
+      color: #00ff00;
+      background: rgba(0, 30, 0, 0.6);
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+  <div class="container" id="terminal-root">
+    <!-- Cabeçalho do Sistema -->
+    <header class="terminal-header">
+      <div class="header-bar">
+        <span>SISTEMA DE SEGURANÇA // PORTA DE FIREWALL 2</span>
+        <span id="audio-status">[ÁUDIO: ATIVADO] (Pressione F8 para alternar)</span>
+      </div>
+    </header>
+
+    <!-- ==========================================
+         FASE 2.1: A SENHA CRIPTOGRAFADA
+         ========================================== -->
+    <section id="phase-1-panel" class="terminal-box active">
+      <span class="box-title">[ENIGMA 2.1: A SENHA CRIPTOGRAFADA]</span>
+      <p style="font-size: 18px; color: #e2e8f0; font-weight: 500;">
+        A porta está segura por uma senha criptografada, você deve desvendar a charada para poder seguir:
+      </p>
+      
+      <div class="riddle-text">
+        "O ano do meu nascimento, o símbolo da riqueza, e a palavra GUARDIÃO gritando em silêncio, unida por um traço inferior."
+      </div>
+
+      <div style="font-size: 16px; color: #ffbb33; margin-bottom: 10px; background: rgba(50,30,0,0.4); padding: 10px; border: 1px solid #775500;">
+        ⚠️ <strong>REGRA CRÍTICA:</strong> A tecla <code>[Backspace]</code> está bloqueada no buffer! Se cometer algum erro de digitação, aperte <code>[Enter]</code> para purgar o campo e recomeçar do zero.
+      </div>
+
+      <div class="input-wrapper" id="p1-input-area">
+        <span class="prompt-symbol">FIREWALL-2.1&gt;</span>
+        <input 
+          type="text" 
+          id="input-enigma-1" 
+          class="terminal-input answer-field-no-mouse" 
+          autocomplete="off" 
+          spellcheck="false" 
+          placeholder="Digite a chave sem errar e pressione [ENTER]..."
+        />
+      </div>
+
+      <div id="p1-feedback" class="feedback-msg" style="display: none;"></div>
+    </section>
+
+    <!-- ==========================================
+         FASE 2.2: O RESGATE DO CÓDIGO
+         ========================================== -->
+    <section id="phase-2-panel" class="terminal-box" style="display: none;">
+      <span class="box-title">[ENIGMA 2.2: O RESGATE DO CÓDIGO]</span>
+      <div class="riddle-text">
+        PASSO 1: Encontre a senha que está entre colchetes [ ], possui o nome de uma tecla do teclado e o meu número<br>
+        PASSO 2: copie a senha completa (incluindo os colchetes)<br>
+        PASSO 3: cole no local indicado.<br><br>
+        Para esse desafio você deverá usar as setas e alguns atalhos.
+      </div>
+
+      <textarea 
+        id="textarea-enigma-2" 
+        class="memory-dump answer-field-no-mouse" 
+        spellcheck="false"
+      ></textarea>
+
+      <div id="p2-status" style="font-size: 15px; color: #00dd00; margin-top: 8px; font-weight: bold;">
+        Cursor: Linha 1, Coluna 1 | Caracteres Selecionados: 0
+      </div>
+
+      <!-- Campo onde o estudante precisa colar o trecho copiado -->
+      <div id="p2-paste-area" style="margin-top: 16px; padding: 14px; background: rgba(0, 24, 0, 0.6); border: 2px solid #008800;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; font-weight: bold; font-size: 15px;">
+          <span>REGISTRADOR DE BUFFER (COLE COM [Ctrl+V]):</span>
+        </div>
+        <div class="input-wrapper" style="margin-top: 0;">
+          <span class="prompt-symbol">BUFFER-PASTE&gt;</span>
+          <input 
+            type="text" 
+            id="input-enigma-2-paste" 
+            class="terminal-input answer-field-no-mouse" 
+            autocomplete="off" 
+            spellcheck="false" 
+            placeholder="Cole aqui o trecho com [Ctrl+V] e pressione [ENTER]..."
+          />
+        </div>
+      </div>
+
+      <div id="p2-feedback" class="feedback-msg" style="display: none;"></div>
+      <div id="p2-ascii-success" class="ascii-banner glow" style="display: none; color: #55ffff; font-size: 13px;"></div>
+    </section>
+
+    <!-- ==========================================
+         FASE 2.3: O PROTOCOLO DE FORMATAÇÃO
+         ========================================== -->
+    <section id="phase-3-panel" class="terminal-box" style="display: none;">
+      <span class="box-title">[ENIGMA 2.3: O PROTOCOLO DE FORMATAÇÃO]</span>
+      <div class="riddle-text">
+        O Guardião dá a instrução final:<br>
+        <em>
+          Digite a frase 'Liberar Acesso Agora',<br>
+          E use os atalhos do teclado, sem demora:<br>
+          A primeira palavra é forte e pesada,<br>
+          A segunda fica deitada, inclinada,<br>
+          E a última tem um traço marcando o chão.<br>
+          Formate tudo certo para liberar a missão!
+        </em>
+      </div>
+
+      <div class="input-wrapper">
+        <span class="prompt-symbol">ROOT-OVERRIDE&gt;</span>
+        <div 
+          id="editor-enigma-3" 
+          class="editable-field answer-field-no-mouse" 
+          contenteditable="true" 
+          spellcheck="false" 
+          role="textbox" 
+          aria-multiline="false"
+        ></div>
+      </div>
+
+      <div id="p3-feedback" class="feedback-msg" style="display: none;"></div>
+    </section>
+
+    <!-- ==========================================
+         TELA FINAL: PORTA DE FIREWALL 2 ABERTA
+         ========================================== -->
+    <section id="victory-panel" class="terminal-box" style="display: none; border-color: #00e5ff; background: rgba(0,25,35,0.7);">
+      <span class="box-title" style="color: #00e5ff; border-color: #00e5ff;">[ACESSO TOTAL CONCEDIDO: FIREWALL QUEBRADO]</span>
+      <div class="ascii-banner glow" style="font-size: 14px; color: #00e5ff;">
+  ____ ___ ____ _____ _____ __  __    _      ____  _____ ____ _   _ ____  _____ ____     _    ____    _   
+ / ___|_ _/ ___|_   _| ____|  \/  |  / \    |  _ \| ____/ ___| | | |  _ \| ____|  _ \   / \  |  _ \  / \  
+ \___ \| |\___ \ | | |  _| | |\/| | / _ \   | |_) |  _|| |   | | | | |_) |  _| | |_) | / _ \ | | | |/ _ \ 
+  ___) | | ___) || | | |___| |  | |/ ___ \  |  _ <| |__| |___| |_| |  __/| |___|  _ < / ___ \| |_| / ___ \
+ |____/___|____/ |_| |_____|_|  |_/_/   \_\ |_| \_\_____\____|\___/|_|   |_____|_| \_\_/   \_\____/_/   \_\
+      </div>
+
+      <div style="margin-top: 18px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+          <h3 style="margin: 0; color: #00e5ff; font-size: 18px; font-weight: bold;">
+            📋 RELATÓRIO TÉCNICO DE AUDITORIA E DESBLOQUEIO
+          </h3>
+          <button 
+            type="button" 
+            id="btn-copy-report"
+            style="background: #00e5ff; color: #000; border: none; font-weight: bold; font-family: inherit; font-size: 14px; padding: 8px 16px; cursor: pointer; text-transform: uppercase;"
+          >
+            COPIAR RELATÓRIO
+          </button>
+        </div>
+
+        <pre id="technical-report-text" style="background: #000000; border: 2px solid #00e5ff; color: #00e5ff; padding: 14px; font-family: inherit; font-size: 13px; line-height: 1.5; overflow-x: auto; white-space: pre; font-weight: bold;">
+============================================================
+       RELATÓRIO TÉCNICO DE AUDITORIA E DESBLOQUEIO
+                PORTA DE FIREWALL 2 - 1999
+============================================================
+AGENTE RESPONSÁVEL : RECRUTA_SEGURANCA_02
+SISTEMA ALVO       : MAINFRAME_CENTRAL_DEFENSE
+STATUS DA PORTA 2  : DESBLOQUEADA COM SUCESSO
+
+DESAFIOS CONCLUÍDOS COM O TECLADO:
+[+] Enigma 2.1: Autenticação precisa sem Backspace ("1999$GUARDIÃO_").
+[+] Enigma 2.2: Varredura de memória e captura de código ("[DELETE.99]").
+[+] Enigma 2.3: Protocolo de formatação com atalhos de texto (Negrito, Itálico, Sublinhado).
+
+CREDENCIAL CRIPTOGRÁFICA FINAL GERADA:
+CHAVE DE ACESSO: CHAVE-FIREWALL-FINAL-1999
+NÍVEL DE PERMISSÃO: ACESSO TOTAL AO MAINFRAME CONCEDIDO
+============================================================</pre>
+      </div>
+
+      <div style="margin-top: 22px; padding: 14px; background: rgba(0, 40, 50, 0.6); border: 1px dashed #00e5ff; font-size: 16px;">
+        <strong>[COMANDOS DO SISTEMA]:</strong> Pressione <code>[R]</code> para reiniciar a simulação.
+      </div>
+    </section>
+
+    <!-- Rodapé de atalhos -->
+    <footer class="keyboard-legend">
+      <span style="color: #cbd5e1; font-weight: bold; text-transform: uppercase;">teclas e atalhos:</span>
+      <span><span class="key-badge">Setas ↑ ↓ ← →</span> Mover Cursor</span>
+      <span><span class="key-badge">Shift + Setas</span> Selecionar Texto</span>
+      <span><span class="key-badge">Ctrl + C</span> Copiar Código</span>
+      <span><span class="key-badge">Ctrl + B</span> Negrito</span>
+      <span><span class="key-badge">Ctrl + I</span> Itálico</span>
+      <span><span class="key-badge">Ctrl + U</span> Sublinhado</span>
+      <span><span class="key-badge">Enter</span> Confirmar / Validar</span>
+      <span><span class="key-badge">F8</span> Silenciar Áudio</span>
+    </footer>
+  </div>
+
+  <script>
+    (function() {
+      let currentPhase = 1;
+      let audioEnabled = true;
+
+      const inputP1 = document.getElementById('input-enigma-1');
+      const p1Feedback = document.getElementById('p1-feedback');
+      const p1Ascii = document.getElementById('p1-ascii-success');
+      const phase2Panel = document.getElementById('phase-2-panel');
+      const textareaP2 = document.getElementById('textarea-enigma-2');
+      const p2Status = document.getElementById('p2-status');
+      const p2Feedback = document.getElementById('p2-feedback');
+      const p2Ascii = document.getElementById('p2-ascii-success');
+      const phase3Panel = document.getElementById('phase-3-panel');
+      const editorP3 = document.getElementById('editor-enigma-3');
+      const p3Feedback = document.getElementById('p3-feedback');
+      const victoryPanel = document.getElementById('victory-panel');
+      const audioStatusEl = document.getElementById('audio-status');
+
+      // Sistema de Áudio nativo
+      const AudioContext = window.AudioContext || window.webkitAudioContext;
+      let audioCtx = null;
+
+      function initAudio() {
+        if (!audioCtx) {
+          try { audioCtx = new AudioContext(); } catch (e) {}
+        }
+        if (audioCtx && audioCtx.state === 'suspended') {
+          audioCtx.resume();
+        }
+      }
+
+      function playTone(freq, type, duration, gainLevel = 0.1) {
+        if (!audioEnabled || !audioCtx) return;
+        try {
+          const osc = audioCtx.createOscillator();
+          const gain = audioCtx.createGain();
+          osc.type = type;
+          osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+          gain.gain.setValueAtTime(gainLevel, audioCtx.currentTime);
+          gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + duration);
+          osc.connect(gain);
+          gain.connect(audioCtx.destination);
+          osc.start();
+          osc.stop(audioCtx.currentTime + duration);
+        } catch (e) {}
+      }
+
+      function soundKeyClick() {
+        playTone(600 + Math.random() * 200, 'square', 0.03, 0.03);
+      }
+
+      function soundBuzzer() {
+        if (!audioEnabled || !audioCtx) return;
+        playTone(135, 'sawtooth', 0.28, 0.2);
+        setTimeout(() => playTone(110, 'sawtooth', 0.25, 0.2), 60);
+      }
+
+      function soundMilestone() {
+        if (!audioEnabled || !audioCtx) return;
+        playTone(523.25, 'triangle', 0.12, 0.15);
+        setTimeout(() => playTone(659.25, 'triangle', 0.14, 0.15), 110);
+        setTimeout(() => playTone(783.99, 'triangle', 0.22, 0.18), 230);
+      }
+
+      function soundVictory() {
+        if (!audioEnabled || !audioCtx) return;
+        const notes = [523.25, 659.25, 783.99, 1046.50, 783.99, 1046.50, 1318.51];
+        notes.forEach((freq, idx) => {
+          setTimeout(() => playTone(freq, 'square', 0.18, 0.15), idx * 130);
+        });
+      }
+
+      function toggleAudio() {
+        audioEnabled = !audioEnabled;
+        audioStatusEl.textContent = audioEnabled ? '[ÁUDIO: ATIVADO] (F8: Alternar)' : '[ÁUDIO: SILENCIADO] (F8: Alternar)';
+      }
+
+      // Enigma 2.1
+      const SENHA_CORRETA = "1999$GUARDIÃO_";
+
+      inputP1.addEventListener('keydown', function(e) {
+        initAudio();
+
+        if (e.key === 'Backspace' || e.keyCode === 8) {
+          e.preventDefault();
+          soundBuzzer();
+          p1Feedback.style.display = 'block';
+          p1Feedback.className = 'feedback-msg feedback-error';
+          p1Feedback.innerHTML = `⚠️ <strong>BACKSPACE BLOQUEADO!</strong> O protocolo do Firewall não permite apagar dados.<br>Se cometeu um erro, aperte <strong>[ENTER]</strong> para limpar o campo e recomeçar!`;
+          return;
+        }
+
+        if (e.key === 'Enter') {
+          e.preventDefault();
+          const digitado = inputP1.value;
+
+          if (digitado === SENHA_CORRETA) {
+            soundMilestone();
+            inputP1.disabled = true;
+            p1Feedback.style.display = 'block';
+            p1Feedback.className = 'feedback-msg feedback-success';
+            p1Feedback.innerHTML = `<strong>SUCESSO!</strong> Código decodificado com precisão: <code>${digitado}</code>`;
+
+            setTimeout(() => {
+              currentPhase = 2;
+              phase2Panel.style.display = 'block';
+              phase2Panel.classList.add('active');
+              document.getElementById('phase-1-panel').classList.remove('active');
+              textareaP2.focus();
+              textareaP2.setSelectionRange(0, 0);
+              updateCursorPosition();
+            }, 1000);
+
+          } else {
+            soundBuzzer();
+            inputP1.value = '';
+            
+            let dica = "Lembre-se da charada:";
+            if (!digitado.startsWith('1999')) {
+              dica = "DICA 1: O ano de nascimento são quatro algarismos no final do século XX (1999).";
+            } else if (!digitado.includes('$')) {
+              dica = "DICA 2: O símbolo da riqueza é o cifrão '$' (Use Shift + 4).";
+            } else if (!digitado.includes('GUARDIÃO')) {
+              dica = "DICA 3: 'Gritando em silêncio' significa em MAIÚSCULAS com til: 'GUARDIÃO'.";
+            } else if (!digitado.endsWith('_')) {
+              dica = "DICA 4: O traço inferior é o underline '_' (Shift + tecla de hífen), não o hífen comum '-'.";
+            } else {
+              dica = "DICA GERAL: Verifique maiúsculas, o til no Ã, o símbolo $ e o underline _ ao final.";
+            }
+
+            p1Feedback.style.display = 'block';
+            p1Feedback.className = 'feedback-msg feedback-hint';
+            p1Feedback.innerHTML = `<strong>SENHA REJEITADA!</strong> O campo foi resetado.<br>${dica}`;
+          }
+          return;
+        }
+
+        if (e.key.length === 1) soundKeyClick();
+      });
+
+      // Enigma 2.2
+      const memoryLines = [
+        "0x00A1F0: SEG_FAULT_INSPECT ADDR_0x44FF INIT_STACK_FRAME",
+        "0x00A204: REG_EAX: 0x00000000 REG_EBX: 0x1A2F8B01 REG_ECX: 0xFF00",
+        "0x00A218: MEM_ALLOC: 4096 BYTES IN VIRTUAL_PAGING_KERNEL",
+        "0x00A22C: NET_PACKET_RX [SRC: 192.168.1.100] [PORT: 8080] SYN_SENT",
+        "0x00A240: SYSTEM_CHECK_INTEGRITY OK >> SCANNING_BLOCK_04",
+        "0x00A254: BUFFER_OVERFLOW_TEST: NO_CANARY_CORRUPTED",
+        "0x00A268: ENCRYPTION_STREAM: AES_GCM_TAG_MATCHED_TRUE",
+        "0x00A27C: ROUTING_TABLE: GATEWAY 10.0.0.1 METRIC 10 FLAGS [UP,GW]",
+        "0x00A290: LOG_EVENT: FIREWALL_RULE_APPLIED CHAIN=FORWARD",
+        "0x00A2A4: INLINE_ASSEMBLY: MOV EAX, CR0 ; OR EAX, 1 ; MOV CR0, EAX",
+        "0x00A2B8: HARDWARE_INTERRUPT IRQ_1 KEYBOARD_CONTROLLER_READY",
+        "0x00A2CC: THREAD_WORKER_03: STATUS=IDLE WAIT_SEMAPHORE",
+        "0x00A2E0: CRITICAL_PAYLOAD >> [DELETE.99] << AUTH_TOKEN_VALID",
+        "0x00A2F4: DUMP_PAGE_FAULT AT CS:EIP 0x0008:0x00102450",
+        "0x00A308: ARP_CACHE_HIT: 00-14-22-01-23-45 IS ALIVE",
+        "0x00A31C: WATCHDOG_TIMER RESET EXECUTED SECURE_BOOT=ENFORCED",
+        "0x00A330: DECRYPT_CIPHER_TEXT_BLOCK_V8 [STREAM_FINISHED]",
+        "0x00A344: END_OF_PACKET_STREAM_DUMP VERIFICATION_DONE"
+      ];
+      textareaP2.value = memoryLines.join('\n');
+
+      function updateCursorPosition() {
+        const text = textareaP2.value;
+        const selStart = textareaP2.selectionStart;
+        const selEnd = textareaP2.selectionEnd;
+        const selLength = selEnd - selStart;
+
+        const linesBefore = text.substring(0, selStart).split('\n');
+        const lineNum = linesBefore.length;
+        const colNum = linesBefore[linesBefore.length - 1].length + 1;
+
+        p2Status.textContent = `Cursor: Linha ${lineNum}, Coluna ${colNum} | Caracteres Selecionados: ${selLength}`;
+      }
+
+      textareaP2.addEventListener('keyup', updateCursorPosition);
+      textareaP2.addEventListener('select', updateCursorPosition);
+      textareaP2.addEventListener('focus', function() {
+        if (textareaP2.selectionStart === 0 && textareaP2.selectionEnd === 0) {
+          textareaP2.setSelectionRange(0, 0);
+          textareaP2.scrollTop = 0;
+        }
+        updateCursorPosition();
+      });
+
+      textareaP2.addEventListener('keydown', function(e) {
+        initAudio();
+        requestAnimationFrame(updateCursorPosition);
+
+        if ((e.ctrlKey || e.metaKey) && (e.key === 'c' || e.key === 'C')) {
+          const selectedText = textareaP2.value.substring(textareaP2.selectionStart, textareaP2.selectionEnd);
+
+          if (selectedText === '[DELETE.99]') {
+            soundMilestone();
+            soundKeyClick();
+            p2Feedback.style.display = 'block';
+            p2Feedback.className = 'feedback-msg feedback-success';
+            p2Feedback.innerHTML = `<strong>CÓDIGO COPIADO COM SUCESSO!</strong> Agora pressione <strong>[Ctrl+V]</strong> no campo de colagem abaixo e aperte <strong>[ENTER]</strong> para autenticar.`;
+            setTimeout(() => {
+              const pasteInput = document.getElementById('input-enigma-2-paste');
+              if (pasteInput) pasteInput.focus();
+            }, 80);
+          } else {
+            soundBuzzer();
+            p2Feedback.style.display = 'block';
+            p2Feedback.className = 'feedback-msg feedback-error';
+
+            if (selectedText.length === 0) {
+              p2Feedback.innerHTML = `<strong>NENHUM TEXTO SELECIONADO!</strong><br>Use as setas para ir até <code>[DELETE.99]</code>. Depois segure <strong>[Shift]</strong> e use as setas para selecionar cada letra antes de apertar <strong>[Ctrl+C]</strong>.`;
+            } else if (selectedText.trim() === '[DELETE.99]') {
+              p2Feedback.innerHTML = `<strong>ESPAÇOS EXTRAS DETECTADOS!</strong> Selecione estritamente do primeiro colchete '[' até o último ']'.`;
+            } else if (selectedText.includes('DELETE.99')) {
+              p2Feedback.innerHTML = `<strong>CÓDIGO INCOMPLETO!</strong> Você selecionou "${selectedText}". Inclua os colchetes <code>[</code> e <code>]</code>!`;
+            } else {
+              p2Feedback.innerHTML = `<strong>CÓDIGO CORROMPIDO!</strong> Você copiou: "${selectedText.slice(0, 25)}${selectedText.length > 25 ? '...' : ''}". Procure a instrução <code>[DELETE.99]</code>.`;
+            }
+          }
+          return;
+        }
+
+        const allowedKeys = [
+          'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight',
+          'Home', 'End', 'PageUp', 'PageDown',
+          'Shift', 'Control', 'Alt', 'Meta', 'CapsLock', 'Tab'
+        ];
+
+        if (allowedKeys.includes(e.key)) {
+          soundKeyClick();
+          return;
+        }
+
+        if (e.key === 'F8' || e.key === 'F2' || e.key === 'Escape') {
+          return;
+        }
+
+        e.preventDefault();
+      });
+
+      // Validação do campo de colagem do Enigma 2.2
+      const pasteInputP2 = document.getElementById('input-enigma-2-paste');
+      if (pasteInputP2) {
+        pasteInputP2.addEventListener('keydown', function(e) {
+          initAudio();
+
+          if (e.key === 'Enter') {
+            e.preventDefault();
+            const val = pasteInputP2.value.trim();
+
+            if (val === '[DELETE.99]') {
+              soundMilestone();
+              p2Feedback.style.display = 'block';
+              p2Feedback.className = 'feedback-msg feedback-success';
+              p2Feedback.innerHTML = `<strong>CÓDIGO CAPTURADO COM SUCESSO!</strong> Sequência <code>[DELETE.99]</code> transferida para a memória.`;
+
+              document.getElementById('p2-paste-area').style.display = 'none';
+
+              setTimeout(() => {
+                currentPhase = 3;
+                phase3Panel.style.display = 'block';
+                phase3Panel.classList.add('active');
+                phase2Panel.classList.remove('active');
+                editorP3.focus();
+              }, 1000);
+
+            } else {
+              soundBuzzer();
+              p2Feedback.style.display = 'block';
+              p2Feedback.className = 'feedback-msg feedback-error';
+              if (val.length === 0) {
+                p2Feedback.innerHTML = `<strong>CAMPO VAZIO!</strong> Selecione <code>[DELETE.99]</code> no texto acima, copie com <strong>[Ctrl+C]</strong>, cole aqui com <strong>[Ctrl+V]</strong> e aperte <strong>[ENTER]</strong>.`;
+              } else {
+                p2Feedback.innerHTML = `<strong>CÓDIGO INCORRETO COLADO:</strong> "${val}". O trecho colado deve ser rigorosamente <code>[DELETE.99]</code>.`;
+              }
+            }
+            return;
+          }
+
+          if (e.key.length === 1 && !e.ctrlKey && !e.metaKey) {
+            soundKeyClick();
+          }
+        });
+      }
+
+      // Enigma 2.3
+      editorP3.addEventListener('keydown', function(e) {
+        initAudio();
+
+        if (e.key.length === 1 && !e.ctrlKey && !e.metaKey) {
+          soundKeyClick();
+        }
+
+        if (e.key === 'Enter') {
+          e.preventDefault();
+          validateEnigma3();
+        }
+      });
+
+      function validateEnigma3() {
+        const rawText = editorP3.textContent || "";
+        // Normaliza espaços em branco, nbsp, quebras de linha e caracteres invisíveis
+        const cleanText = rawText
+          .replace(/[\u00a0\u200b\u200c\u200d\ufeff\r\n\t]/g, ' ')
+          .trim()
+          .replace(/\s+/g, ' ');
+
+        // Normalização flexível para validação do texto (aceita com ou sem ponto final ou aspas)
+        const normalizedText = cleanText
+          .replace(/^['"“‘]+|['"”’]+$/g, '')
+          .replace(/[.,!?;:]+$/, '')
+          .trim();
+
+        if (normalizedText.toLowerCase() !== "liberar acesso agora".toLowerCase()) {
+          soundBuzzer();
+          p3Feedback.style.display = 'block';
+          p3Feedback.className = 'feedback-msg feedback-error';
+          p3Feedback.innerHTML = `<strong>TEXTO INCORRETO!</strong><br>A frase digitada deve ser exatamente: <code>Liberar Acesso Agora</code>.<br>Você digitou: "${cleanText}".`;
+          return;
+        }
+
+        let isLiberarBold = false;
+        let isLiberarOther = false;
+        let isAcessoItalic = false;
+        let isAcessoOther = false;
+        let isAgoraUnderline = false;
+        let isAgoraOther = false;
+
+        const treeWalker = document.createTreeWalker(editorP3, NodeFilter.SHOW_TEXT);
+        let currentNode = treeWalker.nextNode();
+
+        while (currentNode) {
+          const textVal = currentNode.nodeValue;
+          let parent = currentNode.parentElement;
+
+          const hasLiberar = /liberar/i.test(textVal);
+          const hasAcesso = /acesso/i.test(textVal);
+          const hasAgora = /agora/i.test(textVal);
+
+          let bold = false;
+          let italic = false;
+          let underline = false;
+
+          let scanEl = parent;
+          while (scanEl && scanEl !== editorP3 && scanEl !== document.body) {
+            const tag = scanEl.tagName.toUpperCase();
+            const style = window.getComputedStyle(scanEl);
+
+            if (tag === 'B' || tag === 'STRONG' || parseInt(style.fontWeight, 10) >= 600 || style.fontWeight === 'bold') {
+              bold = true;
+            }
+            if (tag === 'I' || tag === 'EM' || style.fontStyle === 'italic') {
+              italic = true;
+            }
+            if (tag === 'U' || style.textDecorationLine.includes('underline') || style.textDecoration.includes('underline')) {
+              underline = true;
+            }
+            scanEl = scanEl.parentElement;
+          }
+
+          if (hasLiberar) {
+            if (bold) isLiberarBold = true;
+            if (italic || underline) isLiberarOther = true;
+          }
+          if (hasAcesso) {
+            if (italic) isAcessoItalic = true;
+            if (bold || underline) isAcessoOther = true;
+          }
+          if (hasAgora) {
+            if (underline) isAgoraUnderline = true;
+            if (bold || italic) isAgoraOther = true;
+          }
+
+          currentNode = treeWalker.nextNode();
+        }
+
+        if (isLiberarBold && !isLiberarOther && isAcessoItalic && !isAcessoOther && isAgoraUnderline && !isAgoraOther) {
+          triggerVictory();
+        } else {
+          soundBuzzer();
+          p3Feedback.style.display = 'block';
+          p3Feedback.className = 'feedback-msg feedback-hint';
+
+          let erros = [];
+          if (!isLiberarBold) {
+            erros.push("A palavra <strong>'Liberar'</strong> deve ser <strong>forte (Negrito)</strong>. Selecione-a com o teclado e aperte <strong>[Ctrl+B]</strong>.");
+          } else if (isLiberarOther) {
+            erros.push("A palavra 'Liberar' deve ter APENAS negrito, sem itálico ou sublinhado.");
+          }
+
+          if (!isAcessoItalic) {
+            erros.push("A palavra <strong>'Acesso'</strong> deve ser <em>inclinada ao vento (Itálico)</em>. Selecione-a com o teclado e aperte <strong>[Ctrl+I]</strong>.");
+          } else if (isAcessoOther) {
+            erros.push("A palavra 'Acesso' deve ter APENAS itálico, sem negrito ou sublinhado.");
+          }
+
+          if (!isAgoraUnderline) {
+            erros.push("A palavra <strong>'Agora'</strong> deve <u>caminhar sobre uma linha (Sublinhado)</u>. Selecione-a com o teclado e aperte <strong>[Ctrl+U]</strong>.");
+          } else if (isAgoraOther) {
+            erros.push("A palavra 'Agora' deve ter APENAS sublinhado, sem negrito ou itálico.");
+          }
+
+          p3Feedback.innerHTML = `<strong>A FRASE ESTÁ CORRETA, A FORMATAÇÃO DELA É QUE NÃO ESTÁ:</strong><br>${erros.join('<br>')}`;
+        }
+      }
+
+      function triggerVictory() {
+        currentPhase = 4;
+        soundVictory();
+
+        document.body.classList.add('firewall-open');
+        phase3Panel.classList.remove('active');
+        editorP3.setAttribute('contenteditable', 'false');
+        victoryPanel.style.display = 'block';
+        victoryPanel.scrollIntoView({ behavior: 'smooth' });
+      }
+
+      function ensureFocus() {
+        if (currentPhase === 1) {
+          if (document.activeElement !== inputP1) inputP1.focus();
+        } else if (currentPhase === 2) {
+          if (document.activeElement !== textareaP2) textareaP2.focus();
+        } else if (currentPhase === 3) {
+          if (document.activeElement !== editorP3) editorP3.focus();
+        }
+      }
+
+      document.addEventListener('keydown', function(e) {
+        initAudio();
+
+        if (e.key === 'F8') {
+          e.preventDefault();
+          toggleAudio();
+          return;
+        }
+
+        if ((e.key === 'r' || e.key === 'R') && currentPhase === 4) {
+          e.preventDefault();
+          window.location.reload();
+          return;
+        }
+      });
+
+      const btnCopyReport = document.getElementById('btn-copy-report');
+      if (btnCopyReport) {
+        btnCopyReport.addEventListener('click', function() {
+          soundKeyClick();
+          const reportEl = document.getElementById('technical-report-text');
+          if (reportEl) {
+            navigator.clipboard.writeText(reportEl.textContent.trim()).then(function() {
+              btnCopyReport.textContent = '✅ RELATÓRIO COPIADO!';
+              setTimeout(function() {
+                btnCopyReport.textContent = 'COPIAR RELATÓRIO';
+              }, 3000);
+            });
+          }
+        });
+      }
+
+      window.addEventListener('load', function() {
+        ensureFocus();
+      });
+    })();
+  </script>
+</body>
+</html>
